@@ -1,4 +1,4 @@
-# OptiFOAM: Multidisciplinary Design Optimization Framework
+# Parametric Aerodynamic Shape Optimization Framework
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![OpenFOAM](https://img.shields.io/badge/OpenFOAM-Tested-orange)
@@ -6,30 +6,25 @@
 > **Note:** Developed during a research internship at the CICLoPE Laboratory.
 
 ## Overview
-OptiFOAM is an orchestration framework for parameter-driven geometric synthesis and computational fluid dynamics (CFD) analysis of rocket nozzles. It integrates parametric CAD engines (SALOME, Blender) with OpenFOAM solvers to execute Surrogate-Based Optimization (SBO) and Direct Optimization workflows.
+This repository contains a generalized orchestration framework for parameter-driven aerodynamic shape optimization and computational fluid dynamics (CFD) analysis. It integrates parametric CAD engines (SALOME, Blender) and analytical surface generators with OpenFOAM solvers to execute Surrogate-Based Optimization (SBO) and Direct Optimization workflows across arbitrary fluid domains.
 
 ---
 
-## Prerequisites and System Requirements
-The framework operates on Linux/WSL environments. System requirements include:
-* **Python 3.8+**
-* **OpenFOAM** (Baseline cases must be configured for the active environment)
-* **SALOME** or **Blender** (Dynamic autodiscovery searches in standard system paths: `~/Salome`, `/opt/salome`, `/usr/bin/blender`)
+## Software Environment
+The framework has been tested and validated with the following software stack:
+* **OpenFOAM:** v2406
+* **Blender:** 4.1 (for surface morphing)
+* **SALOME:** 9.15.0 (for B-Rep construction)
 
----
+### Python Environment Setup
+Execution logic requires dependency resolution prior to launching the framework. The virtual environment is **not** included in the repository and must be created locally by the user.
 
-## Python Environment Setup
-The execution logic requires an isolated virtual environment to ensure deterministic dependency resolution.
-
-1. **Initialize the virtual environment:**
+1. **Create and activate a new virtual environment:**
 ```bash
-python3 -m venv env_local
+python3 -m venv venv
+source venv/bin/activate
 ```
-2. **Activate the environment:**
-```bash
-source env_local/bin/activate
-```
-3. **Install dependencies:**
+2. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
@@ -37,14 +32,23 @@ pip install -r requirements.txt
 ---
 
 ## Repository Structure
-The framework architecture reflects the sequential operational phases:
+The framework architecture is modular and reflects sequential operational phases:
 
-* **`run.sh`**: Main Bash orchestrator for environment setup, cleanup, and Python execution.
-* **`clear_case.sh`**: Utility script to purge simulation directories and geometric variants.
-* **`01_Geometry/`**: Contains CAD interface scripts (`salome_geo.py`, `export_blender.py`) and stores generated `stl_variants/`.
-* **`02_Simulation/`**: Contains the OpenFOAM `baseline/` template and hosts the transient `case_*/` execution directories.
-* **`03_Data/`**: Central repository for parametric matrices (`design_points.csv`, `design_space.json`) and extracted results.
-* **`scripts/`**: Contains the core Python logic (`main.py`, `config.py`, orchestrators, and data extraction modules).
+* **`run.sh`**: Main Bash orchestrator for optional workspace cleanup and Python router execution.
+* **`clear_case.sh`**: Utility script to purge transient simulation directories (`case_*`), STLs, and CSV matrices.
+* **`01_Geometry/`**: Contains CAD interface scripts defining the aerodynamic shape:
+  * `export_blender.py`: Headless surface morphing via Shape Keys and `bmesh` topology sanitization.
+  * `export_salome.py`: B-Rep geometry manipulation handling `.xao` parallelization via PID injection.
+  * `genSTR.py`: Example of an analytical surface generation script and OpenFOAM dictionary integration.
+* **`02_Simulation/`**: Contains the OpenFOAM `baseline/` template (hosting standard `0/`, `constant/`, `system/` directories) and serves as the working directory for generated `case_*/` folders. **The included baseline is pre-configured for the simulation of a conical converging-diverging nozzle.**
+* **`03_Data/`**: Central repository for variable bounds (`design_space.json`), Design of Experiments matrices (`design_points.csv`), and extracted performance metrics (`design_results.csv`).
+* **`scripts/`**: Contains the core Python logic:
+  * `main.py`: CLI router and entry point.
+  * `config.py`: Executable autodiscovery and global path definitions.
+  * `core_geometry.py`: Geometric engine routing Subprocess calls to the active CAD tool.
+  * `pipeline_sbo.py`: Decoupled Surrogate-Based Optimization orchestrator (LHS sampling, geometry cloning, MPI parallel CFD execution).
+  * `pipeline_opt.py`: Direct iterative optimization architecture.
+  * `extract_result.py`: Convergence validation and time-averaged output data extraction based on defined metrics in `config.py`.
 
 ---
 
@@ -55,31 +59,32 @@ The primary entry point is the main bash wrapper. The virtual environment must b
 ./run.sh
 ```
 
-This script executes optional workspace cleanup and invokes the Python Main Router (`scripts/main.py`), presenting an interactive terminal interface with three operational modes:
+The interactive terminal interface presents three operational modes:
 
 ### Mode 1: Surrogate-Based Optimization (DOE Batch / LHS)
-Executes a decoupled architecture for generating a Design of Experiments (DOE).
-* **Generation:** Utilizes Latin Hypercube Sampling (LHS) based on boundaries defined in `design_space.json`. It supports parsing of manually provided `design_points.csv` matrices.
-* **Phase 1 (Setup):** Instantiates physical dimensions, morphs the CAD geometry, and generates discrete OpenFOAM cases by duplicating the baseline template.
-* **Phase 2 (Execution):** Automates the meshing process (`blockMesh`, `snappyHexMesh`) and executes the fluid dynamic solver (`rhoCentralFoam`). Supports parallel execution via MPI.
-* **Data Extraction:** Parses log files of converged cases to extract time-averaged boundary metrics, outputting consolidated data to `03_Data/design_results.csv`.
+Executes a decoupled architecture for generating a Design of Experiments via `scripts/pipeline_sbo.py`.
+* **Generation:** Utilizes Latin Hypercube Sampling (LHS) based on geometric boundaries defined in `design_space.json`. Supports parsing of manually provided CSV matrices.
+* **Phase 1 (Setup):** Instantiates physical dimensions, calls the selected CAD engine for STL generation, and sets up discrete OpenFOAM cases.
+* **Phase 2 (Execution):** Automates the meshing process and executes the configured fluid dynamic solver. Supports parallel execution via MPI.
+* **Data Extraction:** Parses OpenFOAM logs to extract and time-average target metrics (e.g., forces, mass flow, aerodynamic coefficients), saving consolidated data to `design_results.csv`.
+* **Optimization:** *Under active development.*
 
 ### Mode 2: Direct Optimization (Iterative Search)
-*Under active development.* Connects external gradient-based or evolutionary algorithms (e.g., SLSQP, NSGA-II) directly to the geometric engine. Analyzes spatial parameters dynamically, evaluating the cost function iteratively.
+*Under active development.* Managed via `scripts/pipeline_opt.py`. Connects external numerical optimization algorithms directly to the geometric engine to evaluate spatial parameters dynamically against a defined cost function.
 
 ### Mode 3: Single Geometry Generation (Test Mode)
-Diagnostic tool for validating CAD engine connectivity. It isolates the geometric core (`core_geometry.py`) to generate a single `.stl` file using nominal values from configuration files, without initiating the CFD sequence.
+Diagnostic tool for validating CAD engine connectivity. Isolates `core_geometry.py` to generate a single `.stl` file using nominal parameter values without initiating the full CFD sequence.
 
 ---
 
 ## External CLI Execution
-For unsupervised execution or integration with scheduling tools, the Python router supports command-line arguments:
+For unsupervised execution or integration with external scheduling tools, the framework supports command-line arguments:
 
-**SBO Batch:** 
+**SBO Batch Execution:**
 ```bash
 python3 scripts/main.py --mode sbo --ncases 50 --seed 42 --parallel --cores 8
 ```
-**Data Extraction:** 
+**Data Extraction (Post-Processing Only):**
 ```bash
 python3 scripts/main.py --mode extract
 ```
