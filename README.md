@@ -1,7 +1,14 @@
 # OptiFOAM: Multidisciplinary Design Optimization Framework
 
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![OpenFOAM](https://img.shields.io/badge/OpenFOAM-Tested-orange)
+
+> **Note:** Developed during a research internship at the CICLoPE Laboratory.
+
 ## Overview
-OptiFOAM is an orchestration framework for parameter-driven geometric synthesis and computational fluid dynamics (CFD) analysis of rocket nozzles. Developed during a research internship at the CICLoPE Laboratory, it integrates parametric CAD engines (SALOME, Blender) with OpenFOAM solvers to execute Surrogate-Based Optimization (SBO) and Direct Optimization workflows.
+OptiFOAM is an orchestration framework for parameter-driven geometric synthesis and computational fluid dynamics (CFD) analysis of rocket nozzles. It integrates parametric CAD engines (SALOME, Blender) with OpenFOAM solvers to execute Surrogate-Based Optimization (SBO) and Direct Optimization workflows.
+
+---
 
 ## Prerequisites and System Requirements
 The framework operates on Linux/WSL environments. System requirements include:
@@ -9,15 +16,25 @@ The framework operates on Linux/WSL environments. System requirements include:
 * **OpenFOAM** (Baseline cases must be configured for the active environment)
 * **SALOME** or **Blender** (Dynamic autodiscovery searches in standard system paths: `~/Salome`, `/opt/salome`, `/usr/bin/blender`)
 
+---
+
 ## Python Environment Setup
 The execution logic requires an isolated virtual environment to ensure deterministic dependency resolution.
 
 1. **Initialize the virtual environment:**
-   `python3 -m venv env_local`
+```bash
+python3 -m venv env_local
+```
 2. **Activate the environment:**
-   `source env_local/bin/activate`
+```bash
+source env_local/bin/activate
+```
 3. **Install dependencies:**
-   `pip install -r requirements.txt`
+```bash
+pip install -r requirements.txt
+```
+
+---
 
 ## Repository Structure
 The framework architecture reflects the sequential operational phases:
@@ -29,10 +46,14 @@ The framework architecture reflects the sequential operational phases:
 * **`03_Data/`**: Central repository for parametric matrices (`design_points.csv`, `design_space.json`) and extracted results.
 * **`scripts/`**: Contains the core Python logic (`main.py`, `config.py`, orchestrators, and data extraction modules).
 
+---
+
 ## Execution Guide
 The primary entry point is the main bash wrapper. The virtual environment must be active prior to execution.
 
-`./run.sh`
+```bash
+./run.sh
+```
 
 This script executes optional workspace cleanup and invokes the Python Main Router (`scripts/main.py`), presenting an interactive terminal interface with three operational modes:
 
@@ -49,10 +70,16 @@ Executes a decoupled architecture for generating a Design of Experiments (DOE).
 ### Mode 3: Single Geometry Generation (Test Mode)
 Diagnostic tool for validating CAD engine connectivity. It isolates the geometric core (`core_geometry.py`) to generate a single `.stl` file using nominal values from configuration files, without initiating the CFD sequence.
 
+---
+
 ## External CLI Execution
 For unsupervised execution or integration with scheduling tools, the Python router supports command-line arguments:
 
-* **SBO Batch:** 
-  `python3 scripts/main.py --mode sbo --ncases 50 --seed 42 --parallel --cores 8`
-* **Data Extraction:** 
-  `python3 scripts/main.py --mode extract`
+**SBO Batch:** 
+```bash
+python3 scripts/main.py --mode sbo --ncases 50 --seed 42 --parallel --cores 8
+```
+**Data Extraction:** 
+```bash
+python3 scripts/main.py --mode extract
+```
