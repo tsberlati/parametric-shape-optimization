@@ -76,3 +76,8 @@ Executes a decoupled architecture for generating a Design of Experiments via `sc
 Diagnostic tool for validating CAD engine connectivity. Isolates `core_geometry.py` to generate a single `.stl` file using nominal parameter values without initiating the full CFD sequence.
 
 ---
+## How to cite
+
+If you use this framework in your research or project, please cite it using the following DOI:
+
+**Sberlati, T. (2026). Parametric Aerodynamic Shape Optimization Framework (Version v0.1.0-beta). Zenodo. https://doi.org/10.5281/zenodo.21136321**
