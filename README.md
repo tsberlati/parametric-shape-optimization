@@ -76,15 +76,3 @@ Executes a decoupled architecture for generating a Design of Experiments via `sc
 Diagnostic tool for validating CAD engine connectivity. Isolates `core_geometry.py` to generate a single `.stl` file using nominal parameter values without initiating the full CFD sequence.
 
 ---
-
-## External CLI Execution
-For unsupervised execution or integration with external scheduling tools, the framework supports command-line arguments:
-
-**SBO Batch Execution:**
-```bash
-python3 scripts/main.py --mode sbo --ncases 50 --seed 42 --parallel --cores 8
-```
-**Data Extraction (Post-Processing Only):**
-```bash
-python3 scripts/main.py --mode extract
-```
