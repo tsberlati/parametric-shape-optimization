@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2406                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(p)         cellMDLimited Gauss linear 0.5;
+    grad(U)         cellMDLimited Gauss linear 0.5;
+    grad(rho)       cellMDLimited Gauss linear 0.5;
+    grad(e)         cellMDLimited Gauss linear 0.5;
+    grad(k)         cellMDLimited Gauss linear 0.5;
+    grad(omega)     cellMDLimited Gauss linear 0.5;
+}
+
+divSchemes
+{
+    default         none;
+
+    // Termini viscosi e di stress
+    div(tauMC)      Gauss linear;
+    div(sigmaMC)    Gauss linear;
+    div(muEff*dev2(T(grad(U)))) Gauss linear;
+
+    // Turbolenza al primo ordine per stabilità
+    div(phi,k)      Gauss upwind;
+    div(phi,omega)  Gauss upwind;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear limited 0.5;
+}
+
+interpolationSchemes
+{
+    default         linear;
+    reconstruct(rho) vanLeer;
+    reconstruct(p)   vanLeer;
+    reconstruct(U)   vanLeerV;
+    reconstruct(e)   vanLeer;
+}
+
+snGradSchemes
+{
+    default         limited 0.5;
+}
+
+wallDist
+{
+    method          meshWave;
+}
+
+// ************************************************************************* //

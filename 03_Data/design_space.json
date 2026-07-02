@@ -1,0 +1,12 @@
+{
+    "angle_conv": {
+        "type": "range",
+        "min": 25.0,
+        "max": 45.0
+    },
+    "angle_div": {
+        "type": "perturbation",
+        "nominal": 15,
+        "percent": 50.0
+    }
+}

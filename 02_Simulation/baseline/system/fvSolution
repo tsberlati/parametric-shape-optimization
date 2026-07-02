@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2406                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    // Equazioni governanti esplicite (Massa, Quantità di moto, Energia totale)
+    "(rho|rhoU|rhoE).*"
+    {
+        solver          diagonal;
+    }
+
+    // Correzioni viscose implicite
+    "(U|e).*"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-08;
+        relTol          0.1;
+    }
+
+    // Risolutore per la turbolenza ottimizzato per strati limite
+    "(k|omega).*"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-08;
+        relTol          0.1;
+    }
+}
+
+// Blocco relaxationFactors rimosso per garantire la consistenza temporale 
+// delle equazioni di Navier-Stokes in regime transitorio.
+
+// ************************************************************************* //

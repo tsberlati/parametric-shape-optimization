@@ -1,0 +1,63 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2406                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       volScalarField;
+    location    "0";
+    object      omega;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 -1 0 0 0 0];
+
+internalField   uniform 100; // Valore di guess per il dominio interno
+
+boundaryField
+{
+    inlet
+    {
+        type            turbulentMixingLengthFrequencyInlet;
+        intensity       0.05;
+        mixingLength    0.002; // Circa il 7% del diametro di ingresso (31 mm)
+        value           uniform 1000;
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 10; // Valore asintotico per aria in reverse flow
+        value           uniform 10;
+    }
+    walls
+    {
+        type            omegaWallFunction;
+        value           uniform 1e-10;
+    }
+    farfield
+    {
+        type            inletOutlet;
+        inletValue      uniform 10; // Valore asintotico aria ambiente pulita
+        value           uniform 10;
+    }
+    axis
+    {
+        type            empty;
+    }
+    front
+    {
+        type            wedge;
+    }
+    back
+    {
+        type            wedge;
+    }
+}
+
+// ************************************************************************* //
